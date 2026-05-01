@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VP Analytics — QSR Project Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#f5f6f8;--surface:#ffffff;--surface2:#f0f2f5;--surface3:#e4e7ec;
+    --border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.13);
+    --text:#111318;--text2:#5a6070;--text3:#9ba3b0;
+    --green:#16a34a;--green-bg:#f0fdf4;--green-light:#dcfce7;
+    --red:#dc2626;--red-bg:#fef2f2;
+    --amber:#b45309;--amber-bg:#fffbeb;
+    --blue:#1d4ed8;--blue-bg:#eff6ff;
+    --purple:#7c3aed;--purple-bg:#f5f3ff;
+    --pink:#be185d;--pink-bg:#fdf2f8;
+    --teal:#0f766e;--teal-bg:#f0fdfa;
+    --fd:'Syne',sans-serif;--fb:'DM Sans',sans-serif;--fm:'DM Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--fb);min-height:100vh;font-size:14px;line-height:1.6}
+  ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:3px}
+  .layout{display:flex;min-height:100vh}
+  .sidebar{width:268px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
+  .sb-logo{padding:22px 20px 16px;border-bottom:1px solid var(--border)}
+  .logo-row{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+  .logo-icon{width:32px;height:32px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .logo-icon svg{width:16px;height:16px}
+  .logo-title{font-family:var(--fd);font-size:15px;font-weight:700;color:var(--text);letter-spacing:-0.3px}
+  .logo-sub{font-size:11px;color:var(--text3);font-family:var(--fm)}
+  .sync-row{display:flex;align-items:center;gap:6px;margin-top:7px;font-size:10px;font-family:var(--fm);color:var(--text3)}
+  .sync-dot{width:7px;height:7px;border-radius:50%;background:var(--surface3);flex-shrink:0;transition:background 0.3s}
+  .sync-dot.synced{background:var(--green)}.sync-dot.syncing{background:var(--amber);animation:pulse 1s infinite}.sync-dot.error{background:var(--red)}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+  .sb-sec{padding:14px 18px;border-bottom:1px solid var(--border)}
+  .sb-lbl{font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-family:var(--fm);margin-bottom:10px}
+  .prog-nums{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+  .prog-big{font-family:var(--fd);font-size:28px;font-weight:700;color:var(--green)}
+  .prog-of{font-size:11px;color:var(--text3);font-family:var(--fm)}
+  .bar{height:5px;background:var(--surface3);border-radius:3px;overflow:hidden}
+  .bar-fill{height:100%;background:var(--green);border-radius:3px;transition:width 0.5s cubic-bezier(.4,0,.2,1)}
+  .stat-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px}
+  .stat-val{font-family:var(--fd);font-size:18px;font-weight:600}
+  .stat-lbl{font-size:10px;color:var(--text3);font-family:var(--fm);margin-top:1px}
+  .team-list{display:flex;flex-direction:column;gap:4px}
+  .member-item{display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:8px;cursor:pointer;transition:background 0.15s;border:1px solid transparent}
+  .member-item:hover{background:var(--surface2)}.member-item.active{background:var(--green-bg);border-color:var(--green-light)}
+  .avatar{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;font-family:var(--fm);flex-shrink:0}
+  .m-info{flex:1;min-width:0}
+  .m-name{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .m-role{font-size:10px;color:var(--text3);font-family:var(--fm)}
+  .m-cnt{font-size:10px;color:var(--text2);font-family:var(--fm);margin-left:auto;flex-shrink:0}
+  .fbtn-group{display:flex;flex-direction:column;gap:3px}
+  .fbtn{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px;cursor:pointer;border:none;background:transparent;color:var(--text2);font-family:var(--fb);font-size:12px;text-align:left;transition:all 0.15s;width:100%}
+  .fbtn:hover{background:var(--surface2);color:var(--text)}.fbtn.active{background:var(--green-bg);color:var(--green);font-weight:500}
+  .fdot{width:8px;height:8px;border-radius:3px;flex-shrink:0}
+  .fcnt{margin-left:auto;font-family:var(--fm);font-size:10px;color:var(--text3)}
+  .dl-panel{margin:0 16px 14px;background:var(--red-bg);border:1px solid rgba(220,38,38,.15);border-radius:8px;padding:10px 12px}
+  .dl-title{font-size:10px;color:var(--red);font-family:var(--fm);font-weight:500;margin-bottom:4px;text-transform:uppercase;letter-spacing:.08em}
+  .dl-item{font-size:11px;color:var(--text2);line-height:1.8}
+  .main{flex:1;padding:30px 34px;min-width:0;overflow-x:hidden}
+  .main-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;gap:16px;flex-wrap:wrap}
+  .main-title{font-family:var(--fd);font-size:22px;font-weight:700;color:var(--text);letter-spacing:-.4px;line-height:1.2}
+  .main-sub{font-size:12px;color:var(--text3);font-family:var(--fm);margin-top:3px}
+  .hdr-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .today-chip{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:5px 12px;font-size:11px;color:var(--text2);font-family:var(--fm)}
+  .abtn{background:var(--surface);border:1px solid var(--border2);border-radius:7px;padding:6px 12px;font-size:11px;color:var(--text2);cursor:pointer;font-family:var(--fm);transition:all 0.15s}
+  .abtn:hover{background:var(--surface2);color:var(--text)}.abtn.danger:hover{border-color:rgba(220,38,38,.4);color:var(--red);background:var(--red-bg)}
+  .timeline{display:flex;margin-bottom:28px;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface)}
+  .tl-week{flex:1;padding:10px 6px;text-align:center;border-right:1px solid var(--border);cursor:pointer;transition:background 0.15s}
+  .tl-week:last-child{border-right:none}.tl-week:hover{background:var(--surface2)}.tl-week.current{background:var(--green-bg)}
+  .tl-num{font-family:var(--fm);font-size:9px;color:var(--text3);margin-bottom:3px}
+  .tl-pct{font-family:var(--fd);font-size:13px;font-weight:600;color:var(--text)}
+  .tl-bar{height:3px;background:var(--surface3);border-radius:2px;margin-top:5px;overflow:hidden}
+  .tl-bar-fill{height:100%;border-radius:2px;transition:width 0.4s}
+  .tl-dates{font-size:9px;color:var(--text3);font-family:var(--fm);margin-top:3px}
+  .tl-dot{width:5px;height:5px;background:var(--green);border-radius:50%;margin:0 auto 2px}
+  .weeks{display:flex;flex-direction:column;gap:10px}
+  .wblock{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface);transition:border-color 0.2s,box-shadow 0.2s}
+  .wblock:hover{border-color:var(--border2)}.wblock.wcurrent{border-color:rgba(22,163,74,.3);box-shadow:0 0 0 3px rgba(22,163,74,.06)}
+  .wheader{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;background:var(--surface);user-select:none;gap:10px}
+  .wheader:hover{background:var(--surface2)}
+  .whl{display:flex;align-items:center;gap:9px;flex:1;min-width:0}
+  .wnum{font-family:var(--fm);font-size:10px;color:var(--text3);background:var(--surface2);border-radius:5px;padding:2px 7px;flex-shrink:0;border:1px solid var(--border)}
+  .wtitle{font-family:var(--fd);font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .wbadge{font-size:10px;font-family:var(--fm);padding:2px 8px;border-radius:20px;flex-shrink:0}
+  .b-cur{background:var(--green-bg);color:var(--green);border:1px solid var(--green-light)}
+  .b-up{background:var(--surface2);color:var(--text3);border:1px solid var(--border)}
+  .b-done{background:var(--green-bg);color:var(--green);border:1px solid var(--green-light)}
+  .b-att{background:var(--red-bg);color:var(--red);border:1px solid rgba(220,38,38,.15)}
+  .whr{display:flex;align-items:center;gap:12px;flex-shrink:0}
+  .wpct{font-family:var(--fm);font-size:11px;color:var(--text2)}
+  .mbar{width:56px;height:4px;background:var(--surface3);border-radius:2px;overflow:hidden}
+  .mbar-fill{height:100%;border-radius:2px;transition:width 0.4s}
+  .chev{color:var(--text3);font-size:11px;transition:transform 0.2s}
+  .wblock.collapsed .chev{transform:rotate(-90deg)}
+  .task-list{background:var(--surface)}
+  .trow{display:flex;align-items:flex-start;gap:11px;padding:10px 16px;border-top:1px solid var(--border);transition:background 0.1s}
+  .trow:hover{background:#fafbfc}
+  .chkbox{width:17px;height:17px;border-radius:5px;border:1.5px solid var(--surface3);cursor:pointer;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;background:var(--surface)}
+  .chkbox:hover{border-color:var(--green)}.chkbox.checked{background:var(--green);border-color:var(--green)}.chkbox.checked::after{content:'';width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px);display:block}
+  .chkbox.loading{border-color:var(--amber);animation:pulse .8s infinite}
+  .tbody{flex:1;min-width:0}
+  .tname{font-size:13px;color:var(--text);line-height:1.4}.tname.done{text-decoration:line-through;color:var(--text3)}
+  .tmeta{display:flex;align-items:center;gap:5px;margin-top:4px;flex-wrap:wrap}
+  .tag{font-size:10px;font-family:var(--fm);padding:2px 7px;border-radius:4px;font-weight:500}
+  .tag-data{background:var(--teal-bg);color:var(--teal)}.tag-nlp{background:var(--purple-bg);color:var(--purple)}
+  .tag-score{background:var(--amber-bg);color:var(--amber)}.tag-pipeline{background:var(--blue-bg);color:var(--blue)}
+  .tag-report{background:#fff7ed;color:#c2410c}.tag-present{background:var(--pink-bg);color:var(--pink)}
+  .tag-admin{background:var(--surface2);color:var(--text2)}
+  .dl-tag{font-size:10px;font-family:var(--fm);padding:2px 7px;border-radius:4px;background:var(--red-bg);color:var(--red);border:1px solid rgba(220,38,38,.15)}
+  .avs{display:flex;gap:3px}
+  .av-sm{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:500;font-family:var(--fm);position:relative}
+  .av-sm:hover::after{content:attr(data-name);position:absolute;bottom:24px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--surface);font-size:10px;padding:3px 7px;border-radius:5px;white-space:nowrap;pointer-events:none;z-index:10}
+  .pdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:5px}
+  .p-high{background:var(--red)}.p-med{background:#f59e0b}.p-low{background:var(--green)}
+  .wnote{padding:9px 16px;border-top:1px solid var(--border);background:var(--blue-bg);font-size:11px;color:var(--blue);font-family:var(--fm)}
+  .empty{padding:20px 16px;text-align:center;color:var(--text3);font-size:12px;font-family:var(--fm);border-top:1px solid var(--border)}
+  .load-ov{display:none;position:fixed;inset:0;background:rgba(255,255,255,.85);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+  .load-ov.show{display:flex}
+  .spinner{width:32px;height:32px;border:3px solid var(--surface3);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .load-txt{font-family:var(--fm);font-size:12px;color:var(--text2)}
+  .modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:100;align-items:center;justify-content:center;padding:20px}
+  .modal-ov.open{display:flex}
+  .modal{background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:26px;width:100%;max-width:440px;box-shadow:0 8px 32px rgba(0,0,0,.12)}
+  .modal-title{font-family:var(--fd);font-size:17px;font-weight:700;margin-bottom:4px;color:var(--text)}
+  .modal-sub{font-size:12px;color:var(--text3);font-family:var(--fm);margin-bottom:18px}
+  .modal-fields{display:flex;flex-direction:column;gap:0;margin-bottom:18px;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .setup-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border);background:var(--surface)}
+  .setup-row:last-child{border-bottom:none}
+  .s-info{flex:1;min-width:0}
+  .s-role{font-size:10px;color:var(--text3);font-family:var(--fm);margin-bottom:3px}
+  .ninput{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 9px;font-family:var(--fb);font-size:12px;color:var(--text);outline:none;transition:border-color .15s}
+  .ninput:focus{border-color:var(--green);background:var(--surface)}
+  .modal-btns{display:flex;gap:8px;justify-content:flex-end}
+  .btn{padding:8px 18px;border-radius:8px;font-size:13px;cursor:pointer;font-family:var(--fb);font-weight:500;transition:all .15s;border:none}
+  .btn-p{background:var(--green);color:#fff}.btn-p:hover{background:#15803d}
+  .btn-g{background:transparent;border:1px solid var(--border2);color:var(--text2)}.btn-g:hover{background:var(--surface2)}
+  .btn-d{background:var(--red);color:#fff}.btn-d:hover{background:#b91c1c}
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:var(--surface);font-size:12px;font-family:var(--fm);padding:10px 16px;border-radius:8px;z-index:300;opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none}
+  .toast.show{opacity:1;transform:translateY(0)}.toast.green{background:var(--green)}.toast.red{background:var(--red)}
+  @media(max-width:768px){.sidebar{display:none}.main{padding:18px 14px}.timeline{display:none}}
+</style>
+</head>
+<body>
+
+<div class="load-ov" id="load-ov">
+  <div class="spinner"></div>
+  <div class="load-txt">Syncing with team sheet...</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="logo-row">
+        <div class="logo-icon">
+          <svg viewBox="0 0 16 16" fill="none">
+            <rect x="2" y="8" width="3" height="6" fill="#fff" rx="1"/>
+            <rect x="6.5" y="4" width="3" height="10" fill="#fff" rx="1"/>
+            <rect x="11" y="1" width="3" height="13" fill="#fff" rx="1"/>
+          </svg>
+        </div>
+        <span class="logo-title">VP Analytics</span>
+      </div>
+      <div class="logo-sub">QSR · Course 4 · 7 weeks</div>
+      <div class="sync-row">
+        <div class="sync-dot" id="sync-dot"></div>
+        <span id="sync-lbl">Connecting...</span>
+      </div>
+    </div>
+
+    <div class="sb-sec">
+      <div class="sb-lbl">Overall progress</div>
+      <div class="prog-nums">
+        <span class="prog-big" id="sb-pct">0%</span>
+        <span class="prog-of" id="sb-of">0/0</span>
+      </div>
+      <div class="bar"><div class="bar-fill" id="sb-bar" style="width:0%"></div></div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-val" style="color:var(--green)" id="sb-done">0</div><div class="stat-lbl">done</div></div>
+        <div class="stat-box"><div class="stat-val" style="color:var(--red)" id="sb-rem">0</div><div class="stat-lbl">remaining</div></div>
+      </div>
+    </div>
+
+    <div class="sb-sec">
+      <div class="sb-lbl">Team</div>
+      <div class="team-list" id="sb-team"></div>
+    </div>
+
+    <div class="sb-sec">
+      <div class="sb-lbl">Filter by type</div>
+      <div class="fbtn-group" id="tag-filters"></div>
+    </div>
+
+    <div class="dl-panel" id="dl-panel" style="display:none;margin-top:14px">
+      <div class="dl-title">Upcoming deadlines</div>
+      <div class="dl-item" id="dl-list"></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="main-header">
+      <div>
+        <div class="main-title">QSR Location Health Index</div>
+        <div class="main-sub">Employer Project · 4 May – 21 Jun 2025 · Live sync enabled</div>
+      </div>
+      <div class="hdr-right">
+        <div class="today-chip" id="today-chip"></div>
+        <button class="abtn" onclick="showSetup()">Edit names</button>
+        <button class="abtn danger" onclick="confirmReset()">Reset all</button>
+      </div>
+    </div>
+
+    <div class="timeline" id="timeline"></div>
+    <div class="weeks" id="weeks"></div>
+  </main>
+</div>
+
+<div class="modal-ov" id="setup-modal">
+  <div class="modal">
+    <div class="modal-title">Team members</div>
+    <div class="modal-sub">Edit names — saved locally on your device.</div>
+    <div class="modal-fields" id="setup-fields"></div>
+    <div class="modal-btns">
+      <button class="btn btn-g" onclick="closeSetup()">Cancel</button>
+      <button class="btn btn-p" onclick="saveSetup()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-ov" id="reset-modal">
+  <div class="modal">
+    <div class="modal-title">Reset all progress?</div>
+    <div class="modal-sub">This will uncheck every task for the entire team. Cannot be undone.</div>
+    <div class="modal-btns">
+      <button class="btn btn-g" onclick="document.getElementById('reset-modal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-d" onclick="doReset()">Yes, reset all</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SHEET_URL='https://script.google.com/macros/s/AKfycbwAMbfwolyyYTmiYxDRGFIm7KW0_G2MpLJR-GVTtgfRuAY86i2zDLAGB975HWoTpXEKhQ/exec';
+
+const MEMBERS=[
+  {id:'P',name:'Pedro',  role:'Lead analyst & NLP',  bg:'#dcfce7',tc:'#15803d'},
+  {id:'A',name:'Melissa',role:'Data engineer',        bg:'#dbeafe',tc:'#1d4ed8'},
+  {id:'B',name:'Therese',role:'Data scientist',       bg:'#ede9fe',tc:'#6d28d9'},
+  {id:'C',name:'MJ',     role:'Viz & dashboard',      bg:'#fce7f3',tc:'#9d174d'},
+  {id:'D',name:'Mickael',role:'Report writer',        bg:'#fef3c7',tc:'#92400e'},
+  {id:'E',name:'Annie',  role:'Presentation lead',    bg:'#ccfbf1',tc:'#0f766e'}
+];
+
+const WD=[
+  {id:1,title:'Team setup & brief alignment',dates:'4–10 May',
+   note:'Module 1: Team Charter & NDA must be submitted this week.',
+   tasks:[
+    {id:'1a',name:'Read and annotate the VP Analytics brief as a team',tag:'admin',priority:'high',assignees:['P','A','B','C','D','E']},
+    {id:'1b',name:'Complete and sign Team Charter document',tag:'admin',priority:'high',assignees:['P','E'],deadline:'NDA submission'},
+    {id:'1c',name:'Sign NDA and submit via Canvas',tag:'admin',priority:'high',assignees:['P','A','B','C','D','E'],deadline:'Module 1 deadline'},
+    {id:'1d',name:'Agree on roles and responsibilities across the team',tag:'admin',priority:'high',assignees:['P','E']},
+    {id:'1e',name:'Set up shared workspace — GitHub repo and shared folder',tag:'pipeline',priority:'high',assignees:['A','P']},
+    {id:'1f',name:'Download Yelp Open Dataset — business, review, user JSON files',tag:'data',priority:'high',assignees:['A','B']},
+    {id:'1g',name:'Define QSR filtering criteria: categories, min reviews, active status',tag:'data',priority:'high',assignees:['P','B']},
+    {id:'1h',name:'Prepare 5 key questions for mentor meeting',tag:'admin',priority:'med',assignees:['P','D']}
+  ]},
+  {id:2,title:'Data preparation & environment setup',dates:'11–17 May',
+   note:'Module 2: Team Facilitator Meeting + Assignment 1 submission Monday 13:00 UK time.',
+   tasks:[
+    {id:'2a',name:'Submit Assignment 1 via Canvas',tag:'admin',priority:'high',assignees:['P','E'],deadline:'Mon 13:00 UK'},
+    {id:'2b',name:'Load Yelp JSON files into Snowflake or DuckDB locally',tag:'pipeline',priority:'high',assignees:['A','B']},
+    {id:'2c',name:'Create core SQL tables: business, review, user',tag:'data',priority:'high',assignees:['A']},
+    {id:'2d',name:'Filter dataset to QSR-style businesses only',tag:'data',priority:'high',assignees:['B','P']},
+    {id:'2e',name:'Join business, review and user tables into a single analysis view',tag:'data',priority:'high',assignees:['A','B']},
+    {id:'2f',name:'Handle nulls, duplicates and date range cleaning',tag:'data',priority:'med',assignees:['B']},
+    {id:'2g',name:'Connect Python/Jupyter to Snowflake or DuckDB',tag:'pipeline',priority:'high',assignees:['A','P']},
+    {id:'2h',name:'Attend Team Facilitator Meeting',tag:'admin',priority:'high',assignees:['P','A','B','C','D','E']}
+  ]},
+  {id:3,title:'Feature engineering & NLP',dates:'18–24 May',
+   note:'Module 3: Live EP Partner Q&A this week. Prepare questions in advance.',
+   tasks:[
+    {id:'3a',name:'Engineer quantitative features: avg rating, review count, star distribution',tag:'data',priority:'high',assignees:['B','P']},
+    {id:'3b',name:'Engineer engagement features: elite reviewer ratio, useful/funny/cool votes',tag:'data',priority:'med',assignees:['B']},
+    {id:'3c',name:'Engineer temporal features: review recency and improving vs declining trend',tag:'data',priority:'med',assignees:['P','B']},
+    {id:'3d',name:'Run sentiment scoring per review using TextBlob or VADER',tag:'nlp',priority:'high',assignees:['P']},
+    {id:'3e',name:'Aggregate sentiment scores per outlet',tag:'nlp',priority:'high',assignees:['P']},
+    {id:'3f',name:'Extract top complaint themes via keyword frequency or topic modelling',tag:'nlp',priority:'high',assignees:['P','B']},
+    {id:'3g',name:'Attend Live EP Partner Q&A — ask prepared questions',tag:'admin',priority:'high',assignees:['P','A','B','C','D','E']},
+    {id:'3h',name:'Document all feature engineering decisions in shared notes',tag:'report',priority:'med',assignees:['D']}
+  ]},
+  {id:4,title:'Scorecard design & scoring model',dates:'25–31 May',
+   note:'Module 4: Team Facilitator Meeting this week.',
+   tasks:[
+    {id:'4a',name:'Define scoring components and agree on weightings as a team',tag:'score',priority:'high',assignees:['P','B','A']},
+    {id:'4b',name:'Normalise all features to 0–100 scale',tag:'score',priority:'high',assignees:['B','P']},
+    {id:'4c',name:'Calculate composite Location Health Index score per outlet',tag:'score',priority:'high',assignees:['P','B']},
+    {id:'4d',name:'Segment outlets into tiers: Healthy, Watch, At Risk',tag:'score',priority:'high',assignees:['P']},
+    {id:'4e',name:'Rank all outlets by score — identify top and bottom performers',tag:'score',priority:'high',assignees:['C','P']},
+    {id:'4f',name:'Flag at-risk outlets with root cause themes from NLP output',tag:'nlp',priority:'high',assignees:['P','C']},
+    {id:'4g',name:'Optionally write scorecard results back to Snowflake',tag:'pipeline',priority:'low',assignees:['A']},
+    {id:'4h',name:'Attend Team Facilitator Meeting',tag:'admin',priority:'high',assignees:['P','A','B','C','D','E']},
+    {id:'4i',name:'Begin drafting technical report structure',tag:'report',priority:'med',assignees:['D','E']}
+  ]},
+  {id:5,title:'Dashboard, insights & presentation build',dates:'1–7 Jun',
+   note:'Module 5: Team Facilitator Meeting + Live Presentation (first session).',
+   tasks:[
+    {id:'5a',name:'Build scorecard dashboard in Tableau or Power BI',tag:'present',priority:'high',assignees:['C']},
+    {id:'5b',name:'Connect dashboard to Snowflake or local data source',tag:'pipeline',priority:'high',assignees:['A','C']},
+    {id:'5c',name:'Design tier distribution visual and top themes chart',tag:'present',priority:'high',assignees:['C','P']},
+    {id:'5d',name:'Draft key insights and patterns section for report',tag:'report',priority:'high',assignees:['D','P']},
+    {id:'5e',name:'Draft actionable recommendations for operators',tag:'report',priority:'high',assignees:['D','E']},
+    {id:'5f',name:'Build presentation slide deck — overview and insights slides',tag:'present',priority:'high',assignees:['E','C']},
+    {id:'5g',name:'Review and clean Python notebook — comments, structure, reusability',tag:'pipeline',priority:'med',assignees:['P','A']},
+    {id:'5h',name:'Attend Team Facilitator Meeting + Live Presentation',tag:'admin',priority:'high',assignees:['P','A','B','C','D','E']}
+  ]},
+  {id:6,title:'Final submissions & presentations',dates:'8–14 Jun',
+   note:'Module 6: Final Live Presentation + Assignment 2 due Monday 13:00 UK time.',
+   tasks:[
+    {id:'6a',name:'Submit Assignment 2 via Canvas',tag:'admin',priority:'high',assignees:['P','E'],deadline:'Mon 13:00 UK'},
+    {id:'6b',name:'Finalise and proofread technical report',tag:'report',priority:'high',assignees:['D','E','P']},
+    {id:'6c',name:'Final documentation pass on Python notebook',tag:'pipeline',priority:'high',assignees:['P','A']},
+    {id:'6d',name:'Complete and rehearse final presentation',tag:'present',priority:'high',assignees:['E','C','P']},
+    {id:'6e',name:'Deliver Final Live Presentation to VP Analytics',tag:'present',priority:'high',assignees:['P','A','B','C','D','E']},
+    {id:'6f',name:'Finalise dashboard and ensure it reflects final scorecard output',tag:'present',priority:'high',assignees:['C']},
+    {id:'6g',name:'Upload all deliverables to shared folder and GitHub',tag:'admin',priority:'high',assignees:['A','P']},
+    {id:'6h',name:'Attend final Team Facilitator Meeting',tag:'admin',priority:'high',assignees:['P','A','B','C','D','E']}
+  ]},
+  {id:7,title:'Reflection week',dates:'15–21 Jun',
+   note:'Assignments 3 & 4 due: Monday and Thursday at 13:00 UK time.',
+   tasks:[
+    {id:'7a',name:'Write individual reflection — Assignment 3',tag:'admin',priority:'high',assignees:['P','A','B','C','D','E'],deadline:'Mon 13:00 UK'},
+    {id:'7b',name:'Write peer review and team reflection — Assignment 4',tag:'admin',priority:'high',assignees:['P','A','B','C','D','E'],deadline:'Thu 13:00 UK'},
+    {id:'7c',name:'Review personal learnings and note portfolio evidence',tag:'admin',priority:'low',assignees:['P']}
+  ]}
+];
+
+const TAGS=[
+  {id:'all',label:'All tasks',color:'#9ba3b0'},
+  {id:'data',label:'Data prep',color:'#0f766e'},
+  {id:'nlp',label:'NLP',color:'#7c3aed'},
+  {id:'score',label:'Scorecard',color:'#b45309'},
+  {id:'pipeline',label:'Pipeline',color:'#1d4ed8'},
+  {id:'report',label:'Report',color:'#c2410c'},
+  {id:'present',label:'Presentation',color:'#be185d'},
+  {id:'admin',label:'Admin',color:'#9ba3b0'}
+];
+
+const NK='vpa_names_v4',CK='vpa_collapse_v4';
+let state={},mNames={},collapsed={},fMember='all',fTag='all',pending={};
+
+function loadLocal(){
+  try{mNames=JSON.parse(localStorage.getItem(NK)||'{}')}catch(e){}
+  try{collapsed=JSON.parse(localStorage.getItem(CK)||'{}')}catch(e){}
+}
+function saveNames(){try{localStorage.setItem(NK,JSON.stringify(mNames))}catch(e){}}
+function saveCollapse(){try{localStorage.setItem(CK,JSON.stringify(collapsed))}catch(e){}}
+function gm(id){const m=MEMBERS.find(x=>x.id===id);if(!m)return null;return{...m,name:mNames[id]||m.name}}
+function allT(){return WD.flatMap(w=>w.tasks)}
+function cDone(ts){return ts.filter(t=>state[t.id]).length}
+
+function setSync(cls,lbl){
+  document.getElementById('sync-dot').className='sync-dot '+cls;
+  document.getElementById('sync-lbl').textContent=lbl;
+}
+
+function toast(msg,cls=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast show '+cls;
+  setTimeout(()=>{t.className='toast'},2800);
+}
+
+async function fetchState(){
+  setSync('syncing','Syncing...');
+  try{
+    const r=await fetch(SHEET_URL);
+    state=await r.json();
+    setSync('synced','Synced · '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}));
+    renderAll();
+  }catch(e){
+    setSync('error','Offline mode');
+    toast('Could not reach sheet — working offline.','red');
+    renderAll();
+  }
+}
+
+async function push(id,checked){
+  try{
+    await fetch(SHEET_URL,{method:'POST',body:JSON.stringify({id,checked}),headers:{'Content-Type':'application/json'}});
+    setSync('synced','Synced · '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}));
+  }catch(e){setSync('error','Sync failed');toast('Could not save.','red')}
+}
+
+function wStart(wid){const d=new Date(2025,4,4);d.setDate(d.getDate()+(wid-1)*7);return d}
+function wEnd(wid){const d=wStart(wid);d.setDate(d.getDate()+6);return d}
+
+function renderSidebar(){
+  const all=allT(),done=cDone(all),pct=all.length?Math.round(done/all.length*100):0;
+  document.getElementById('sb-pct').textContent=pct+'%';
+  document.getElementById('sb-of').textContent=done+'/'+all.length;
+  document.getElementById('sb-bar').style.width=pct+'%';
+  document.getElementById('sb-done').textContent=done;
+  document.getElementById('sb-rem').textContent=all.length-done;
+
+  const el=document.getElementById('sb-team');el.innerHTML='';
+  MEMBERS.forEach(m=>{
+    const mb=gm(m.id),ts=allT().filter(t=>t.assignees.includes(m.id)),dn=cDone(ts);
+    const d=document.createElement('div');d.className='member-item'+(fMember===m.id?' active':'');
+    d.onclick=()=>{fMember=fMember===m.id?'all':m.id;renderAll()};
+    d.innerHTML=`<div class="avatar" style="background:${m.bg};color:${m.tc}">${m.id==='P'?'PG':m.id}</div>
+      <div class="m-info"><div class="m-name">${mb.name}</div><div class="m-role">${m.role}</div></div>
+      <div class="m-cnt">${dn}/${ts.length}</div>`;
+    el.appendChild(d);
+  });
+
+  const tf=document.getElementById('tag-filters');tf.innerHTML='';
+  TAGS.forEach(t=>{
+    const cnt=t.id==='all'?allT().length:allT().filter(x=>x.tag===t.id).length;
+    const b=document.createElement('button');b.className='fbtn'+(fTag===t.id?' active':'');
+    b.onclick=()=>{fTag=t.id;renderAll()};
+    b.innerHTML=`<span class="fdot" style="background:${t.color}"></span>${t.label}<span class="fcnt">${cnt}</span>`;
+    tf.appendChild(b);
+  });
+
+  const dlp=document.getElementById('dl-panel'),dll=document.getElementById('dl-list');
+  const dls=allT().filter(t=>t.deadline&&!state[t.id]);
+  if(!dls.length){dlp.style.display='none';return}
+  dlp.style.display='block';
+  dll.innerHTML=dls.slice(0,4).map(t=>`· ${t.name.substring(0,36)}${t.name.length>36?'…':''}<br><span style="color:var(--red);font-size:10px">${t.deadline}</span>`).join('<br>');
+}
+
+function renderTimeline(){
+  const el=document.getElementById('timeline');el.innerHTML='';
+  const today=new Date();
+  WD.forEach(w=>{
+    const ts=w.tasks,dn=cDone(ts),pct=ts.length?Math.round(dn/ts.length*100):0;
+    const s=wStart(w.id),e=wEnd(w.id);
+    const isc=today>=s&&today<=e,isp=today>e;
+    const col=pct===100?'#16a34a':isc?'#16a34a':isp&&pct<100?'#dc2626':'#d1d5db';
+    const d=document.createElement('div');d.className='tl-week'+(isc?' current':'')+(isp?' past':'');
+    d.onclick=()=>document.getElementById('wb-'+w.id)?.scrollIntoView({behavior:'smooth',block:'start'});
+    d.innerHTML=`${isc?'<div class="tl-dot"></div>':''}<div class="tl-num">W${w.id}</div><div class="tl-pct">${pct}%</div>
+      <div class="tl-bar"><div class="tl-bar-fill" style="width:${pct}%;background:${col}"></div></div>
+      <div class="tl-dates">${w.dates}</div>`;
+    el.appendChild(d);
+  });
+}
+
+function renderWeeks(){
+  const el=document.getElementById('weeks');el.innerHTML='';
+  const today=new Date();
+  WD.forEach(w=>{
+    const filt=w.tasks.filter(t=>{
+      if(fMember!=='all'&&!t.assignees.includes(fMember))return false;
+      if(fTag!=='all'&&t.tag!==fTag)return false;
+      return true;
+    });
+    const aw=w.tasks,dn=cDone(aw),pct=aw.length?Math.round(dn/aw.length*100):0;
+    const s=wStart(w.id),e=wEnd(w.id);
+    const isc=today>=s&&today<=e,isp=today>e;
+    let bc='b-up',bt='Upcoming';
+    if(isc){bc='b-cur';bt='Current week'}
+    else if(isp&&pct===100){bc='b-done';bt='Complete'}
+    else if(isp&&pct<100){bc='b-att';bt='Needs attention'}
+    const col=pct===100?'#16a34a':isc?'#16a34a':isp&&pct<100?'#dc2626':'#d1d5db';
+    const isCol=!!collapsed[w.id];
+    const block=document.createElement('div');
+    block.className='wblock'+(isc?' wcurrent':'')+(isCol?' collapsed':'');
+    block.id='wb-'+w.id;
+
+    let th='';
+    if(!isCol){
+      if(!filt.length){th='<div class="empty">No tasks match the current filter</div>'}
+      else{
+        filt.forEach(t=>{
+          const isDone=!!state[t.id],isPend=!!pending[t.id];
+          const avs=t.assignees.map(aid=>{
+            const mb=gm(aid),mc=MEMBERS.find(x=>x.id===aid);
+            return mb?`<div class="av-sm" style="background:${mc.bg};color:${mc.tc}" data-name="${mb.name}">${aid==='P'?'PG':aid}</div>`:'';
+          }).join('');
+          const dl=t.deadline?`<span class="dl-tag">${t.deadline}`+'</span>':'';
+          th+=`<div class="trow">
+            <div class="chkbox ${isDone?'checked':''} ${isPend?'loading':''}" onclick="toggleT('${t.id}')"></div>
+            <div class="tbody">
+              <div class="tname ${isDone?'done':''}">${t.name}</div>
+              <div class="tmeta"><span class="tag tag-${t.tag}">${t.tag}</span>${dl}<div class="avs">${avs}</div></div>
+            </div>
+            <div class="pdot p-${t.priority==='high'?'high':t.priority==='med'?'med':'low'}"></div>
+          </div>`;
+        });
+      }
+      if(w.note)th+=`<div class="wnote">ℹ ${w.note}</div>`;
+    }
+
+    block.innerHTML=`<div class="wheader" onclick="toggleCol(${w.id})">
+      <div class="whl"><span class="wnum">Week ${w.id}</span><span class="wtitle">${w.title}</span><span class="wbadge ${bc}">${bt}</span></div>
+      <div class="whr"><span class="wpct">${dn}/${aw.length} · ${pct}%</span>
+        <div class="mbar"><div class="mbar-fill" style="width:${pct}%;background:${col}"></div></div>
+        <span class="chev">▾</span></div>
+    </div>${!isCol?`<div class="task-list">${th}</div>`:''}`;
+    el.appendChild(block);
+  });
+}
+
+function renderAll(){renderSidebar();renderTimeline();renderWeeks()}
+
+window.toggleT=async function(id){
+  const v=!state[id];state[id]=v;pending[id]=true;
+  setSync('syncing','Saving...');renderAll();
+  await push(id,v);
+  delete pending[id];
+  toast(v?'Task marked done':'Task unmarked',v?'green':'');
+  renderAll();
+};
+
+window.toggleCol=function(id){collapsed[id]=!collapsed[id];saveCollapse();renderWeeks();renderTimeline()};
+
+window.showSetup=function(){
+  const f=document.getElementById('setup-fields');f.innerHTML='';
+  MEMBERS.forEach(m=>{
+    const cur=mNames[m.id]||m.name;
+    f.innerHTML+=`<div class="setup-row">
+      <div class="avatar" style="background:${m.bg};color:${m.tc};width:30px;height:30px;font-size:10px;border-radius:7px">${m.id==='P'?'PG':m.id}</div>
+      <div class="s-info"><div class="s-role">${m.role}</div><input class="ninput" id="ni-${m.id}" value="${cur}" placeholder="${m.name}"></div>
+    </div>`;
+  });
+  document.getElementById('setup-modal').classList.add('open');
+};
+
+window.closeSetup=function(){document.getElementById('setup-modal').classList.remove('open')};
+
+window.saveSetup=function(){
+  MEMBERS.forEach(m=>{const v=document.getElementById('ni-'+m.id)?.value?.trim();if(v)mNames[m.id]=v});
+  saveNames();closeSetup();renderAll();toast('Team names saved','green');
+};
+
+window.confirmReset=function(){document.getElementById('reset-modal').classList.add('open')};
+
+window.doReset=async function(){
+  document.getElementById('reset-modal').classList.remove('open');
+  document.getElementById('load-ov').classList.add('show');
+  state={};
+  for(const t of allT()){
+    try{await fetch(SHEET_URL,{method:'POST',body:JSON.stringify({id:t.id,checked:false}),headers:{'Content-Type':'application/json'}})}catch(e){}
+  }
+  document.getElementById('load-ov').classList.remove('show');
+  toast('All tasks reset','red');renderAll();
+};
+
+document.getElementById('today-chip').textContent=new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+loadLocal();renderAll();fetchState();
+setInterval(fetchState,60000);
+</script>
+</body>
+</html>
